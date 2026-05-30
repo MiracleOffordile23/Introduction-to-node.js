@@ -1,28 +1,47 @@
-import Note from "../models/note.model";
+import mongoose , {QueryFilter, UpdateQuery } from "mongoose"
+import NoteModel from "../models/note.model"
+import { INoteWithCategoryFilter } from "../interfaces/note.interface"
 
 
-// Get all notes
-export const getAllNotesService = async () => {
-  return await Note.find();
-};
 
+class NoteService {
+    // create note
+    async createNote(note: INoteWithCategoryFilter) {
+        const newNote = await NoteModel.create(note);
+        return newNote;
+    }
 
-// Get single note
-export const getSingleNoteService = async (id: string) => {
-  return await Note.findById(id);
-};
+    // update a note
 
+    async updateNote(id: string, note: UpdateQuery<INoteWithCategoryFilter>) {
+        const updatedNote = await NoteModel.findByIdAndUpdate(id, note, { new: true });
+        return updatedNote;
+    }
 
-// Create note
-export const createNoteService = async (data: {
-  title: string;
-  content: string;
-}) => {
-  return await Note.create(data);
-};
+    // delete a note
+    async deleteNote(id: string) {
+        const deletedNote = await NoteModel.findByIdAndDelete(id);
+        return deletedNote;
+    }
 
+    // get a single notes
+    async getNote(filter: QueryFilter<INoteWithCategoryFilter>) {
+        const note = await NoteModel.findOne(filter);
+        return note;
+    }
 
-// Delete note
-export const deleteNoteService = async (id: string) => {
-  return await Note.findByIdAndDelete(id);
-};
+    // get all notes
+    async getAllNotes(filter: QueryFilter<INoteWithCategoryFilter> = {}) {
+        const notes = await NoteModel.find(filter);
+        return notes;
+    }
+
+    // fetch note by category
+
+    async getNotesByCategory(categoryId: mongoose.Types.ObjectId) {
+        const notes = await NoteModel.find({ category: categoryId });
+        return notes;
+    }
+}
+
+export default new NoteService();

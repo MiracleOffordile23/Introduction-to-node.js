@@ -1,27 +1,26 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose from "mongoose"
 
-export interface INote extends Document {
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const NoteSchema: Schema = new Schema(
-  {
-    title: {
-      type: String,
-      required: true,
+const NoteSchema = new mongoose.Schema({
+    title :{
+        type : String,
+        required: true,
+        trim : true,
+        unique : true, // i don't want the same title for two notes
+        lowercase :true
     },
-
-    content: {
-      type: String,
-      required: true,
+    content : {
+        type : String,
+        required :true,
+        trim :true,
     },
-  },
-  {
-    timestamps: true,
-  }
-);
+    category : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Category",
+        required : true
+    }
 
-export default mongoose.model<INote>("Note", NoteSchema);
+} , {timestamps : true})
+
+const NoteMOdel = mongoose.model("Note" , NoteSchema);
+
+export default NoteMOdel;

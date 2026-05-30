@@ -1,57 +1,117 @@
-import { Request, Response } from "express";
+import {Request, Response} from 'express';
+import  noteService from '../services/note.service';
+import mongoose from 'mongoose';
 
-import {
-  getAllNotesService,
-  getSingleNoteService,
-  createNoteService,
-  deleteNoteService,
-} from "../services/note.service";
-export const getAllNotes = async (
-  req: Request,
-  res: Response
-) => {
-  const notes = await getAllNotesService();
+class NoteController {
+    // create note
+    async createNote(req: Request, res: Response) {
+        const note = req.body;
+        // check if a note of that title alredy exist
+        // if not create the note
+        const existingNote = await noteService.getNote({ title: note.title.toLowerCase() })
+        if (existingNote) {
+            return res.status(403)
+            .json({
+                success: false,
+                message: "A note with that title already exists" 
+            });
+        }
+        const newNote = await noteService.createNote(note);
+        return res.status(201).json({
+            success: true,
+            message: "Note created successfully",
+            data: newNote
+        });
+    }
 
-  res.json(notes);
-};
+    // edit book 
 
-export const getSingleNote = async (
-  req: Request,
-  res: Response
-) => {
-  const note = await getSingleNoteService(req.params.id as string);
+    async editNote(req: Request, res: Response) {
+        const id = req.params.id as string; 
+        const updateData = req.body;
+        // fetch the book with the id 
+        const existingNote = await noteService.getNote({ _id: id });
+        if (!existingNote) {
+            return res.status(404).json({
+                success: false,
+                message: "Note not found"
+            });
+        } 
+        // fetching existing book title 
+        if (updateData.title) {
+            const noteWithSameTitle = await noteService.getNote({ title: updateData.title.toLowerCase() });
+            if (noteWithSameTitle && noteWithSameTitle._id.toString() !== id) {
+                return res.status(403).json({
+                    success: false,
+                    message: "A note with that title already exists"
+                });
+            }
+        }
 
-  if (!note) {
-    return res.status(404).json({
-      message: "Note not found",
-    });
-  }
+        const updatedNote = await noteService.updateNote(id, updateData);
+        return res.status(200).json({
+            success: true,
+            message: "Note updated successfully",
+            data: updatedNote
+        });
+   }
 
-  res.json(note);
-};
+   // delete book 
+    async deleteNote(req: Request, res: Response) {
+        const id = req.params.id as string;
+        const existingNote = await noteService.getNote({ _id: id });
+        if (!existingNote) {
+            return res.status(404).json({
+                success: false,
+                message: "Note not found"
+            });
+        }
+        await noteService.deleteNote(id);
+        return res.status(200).json({
+            success: true,
+            message: "Note deleted successfully"
+        });
+    }
 
-export const createNote = async (
-  req: Request,
-  res: Response
-) => {
-  const note = await createNoteService(req.body);
+    // get single book
+    async getSingleNote(req: Request, res: Response) {
+        const id = req.params.id as string;
+        const note = await noteService.getNote({ _id: id });
+        if (!note) {
+            return res.status(404).json({
+                success: false,
+                message: "Note not found"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Note found successfully",
+            data: note
+        });
+    }
 
-  res.status(201).json(note);
-};
+    // get all books
+    async getAllNotes(req: Request, res: Response) {
+        const notes = await noteService.getAllNotes({});
+        return res.status(200).json({
+            success: true,
+            message: "Notes retrieved successfully",
+            data: notes
+        });
+    }
 
-export const deleteNote = async (
-  req: Request,
-  res: Response
-) => {
-  const note = await deleteNoteService(req.params.id as string );
+    // get notes by category
 
-  if (!note) {
-    return res.status(404).json({
-      message: "Note not found",
-    });
-  }
+    async getNotesByCategory(req: Request, res: Response) {
+        const categoryId = new mongoose.Types.ObjectId(req.params.categoryId as string);
+        const notes = await noteService.getNotesByCategory(categoryId);
+        return res.status(200).json({
+            success: true,
+            message: "Notes retrieved successfully",
+            data: notes
+        });
+    }
 
-  res.json({
-    message: "Note deleted successfully",
-  });
-};
+}
+
+export default new NoteController();
