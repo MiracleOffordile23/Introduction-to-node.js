@@ -4,12 +4,14 @@ import dotenv from 'dotenv';
 import express from "express"
 import mongoose from "mongoose"
 import router from "./routes/index.route";
+import { logger } from "./middleware/logging.middleware";
 
 
 dotenv.config();
 const app = express();
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); 
 app.use(express.json());
+app.use(logger);
 app.use("/api" , router);
 const PORT = process.env.PORT || 3030;
 
