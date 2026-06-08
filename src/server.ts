@@ -1,7 +1,6 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-console.log("MONGODB:", process.env.MONGODB_URI);
 import express from "express"
 import mongoose from "mongoose"
 import router from "./routes/index.route";
