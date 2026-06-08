@@ -7,7 +7,8 @@ interface INote {
 }
 
 interface INoteWithCategoryFilter extends INote {
-    category :  mongoose.Types.ObjectId
+    category? :  mongoose.Types.ObjectId
+     userId: mongoose.Types.ObjectId;
 }
 
 interface INoteWithCategory extends INote {

@@ -2,12 +2,15 @@ import {Request, Response} from 'express';
 import  noteService from '../services/note.service';
 import mongoose from 'mongoose';
 
+
 class NoteController {
     // create note
     async createNote(req: Request, res: Response) {
         const note = req.body;
         // check if a note of that title alredy exist
         // if not create the note
+
+        const user = (req as any).user;
         const existingNote = await noteService.getNote({ title: note.title.toLowerCase() })
         if (existingNote) {
             return res.status(403)
@@ -16,7 +19,10 @@ class NoteController {
                 message: "A note with that title already exists" 
             });
         }
-        const newNote = await noteService.createNote(note);
+        const newNote = await noteService.createNote({
+            ...note,
+            userId: user._id
+        });
         return res.status(201).json({
             success: true,
             message: "Note created successfully",
@@ -29,8 +35,12 @@ class NoteController {
     async editNote(req: Request, res: Response) {
         const id = req.params.id as string; 
         const updateData = req.body;
+        const user = (req as any).user;
         // fetch the book with the id 
-        const existingNote = await noteService.getNote({ _id: id });
+        const existingNote = await noteService.getNote({
+            _id: id,
+            userId: user._id
+        });
         if (!existingNote) {
             return res.status(404).json({
                 success: false,
@@ -59,7 +69,11 @@ class NoteController {
    // delete book 
     async deleteNote(req: Request, res: Response) {
         const id = req.params.id as string;
-        const existingNote = await noteService.getNote({ _id: id });
+        const user = (req as any).user;
+        const existingNote = await noteService.getNote({
+            _id: id,
+            userId: user._id
+         });
         if (!existingNote) {
             return res.status(404).json({
                 success: false,
@@ -76,7 +90,11 @@ class NoteController {
     // get single book
     async getSingleNote(req: Request, res: Response) {
         const id = req.params.id as string;
-        const note = await noteService.getNote({ _id: id });
+        const user = (req as any).user;
+        const note = await noteService.getNote({
+            _id: id,
+            userId: user._id
+        });
         if (!note) {
             return res.status(404).json({
                 success: false,
@@ -92,7 +110,11 @@ class NoteController {
 
     // get all books
     async getAllNotes(req: Request, res: Response) {
-        const notes = await noteService.getAllNotes({});
+            const user = (req as any).user;
+
+            const notes = await noteService.getAllNotes({
+            userId: user._id
+        });
         return res.status(200).json({
             success: true,
             message: "Notes retrieved successfully",
@@ -104,7 +126,11 @@ class NoteController {
 
     async getNotesByCategory(req: Request, res: Response) {
         const categoryId = new mongoose.Types.ObjectId(req.params.categoryId as string);
-        const notes = await noteService.getNotesByCategory(categoryId);
+        const user = (req as any).user;
+        const notes = await noteService.getAllNotes({
+            category: categoryId,
+            userId: user._id
+        });
         return res.status(200).json({
             success: true,
             message: "Notes retrieved successfully",
