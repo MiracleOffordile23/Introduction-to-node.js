@@ -6,9 +6,11 @@ import authService from "../services/auth.service";
 class AuthController {
 
   async register(
-    req: Request,
-    res: Response
-  ) {
+  req: Request,
+  res: Response
+) {
+  try {
+
     const user = req.body;
 
     const existingUser =
@@ -31,7 +33,18 @@ class AuthController {
       message: "User registered successfully",
       data: newUser,
     });
+
+  } catch (error) {
+
+    console.log("REGISTER ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error,
+    });
   }
+}
 
 async login(req: Request, res: Response) {
   const { email, password } = req.body;
